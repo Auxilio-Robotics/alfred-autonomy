@@ -94,3 +94,4 @@ cd ~/ws
 source devel/setup.bash
 roslaunch alfred_gazebo simulation.launch
 ```
+
