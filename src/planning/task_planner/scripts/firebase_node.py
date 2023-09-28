@@ -9,7 +9,7 @@ import json
 import os
 class FirebaseNode:
     def __init__(self, schema, operation_mode_callback, teleop_mode_callback):
-        firebase_secrets_path = os.path.expanduser("~/.alfred-auxilio-firebase-adminsdk.json")
+        firebase_secrets_path = os.path.expanduser("~/firebasesecrets.json")
         if not os.path.isfile(firebase_secrets_path):
             raise FileNotFoundError("Firebase secrets file not found")
         
@@ -20,9 +20,10 @@ class FirebaseNode:
         self.db = self.firebase.database()
         self.db.remove("")
         self.db.set(schema)
+
+        self.last_update = time.time()
         self.operation_stream = self.db.child("operation_mode").stream(operation_mode_callback)
         self.teleoperation_stream = self.db.child("teleop_commands").stream(teleop_mode_callback)
-        self.last_update = time.time()
     
     def update_operation_mode(self, mode):
         self.db.update(mode)
@@ -41,7 +42,6 @@ class FirebaseNode:
                     del dict[key]
             self.db.update(dict)
             self.last_update = time.time()
-    
 
 
     
