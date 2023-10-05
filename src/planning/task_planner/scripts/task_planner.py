@@ -63,7 +63,11 @@ class TaskPlanner:
         self.firebase = pyrebase.initialize_app(config)
         self.db = self.firebase.database()
         self.db.remove("")
-        self.state_dict["button_callback"] = False
+        # self.state_dict["button_callback"] = 0
+        # self.state_dict["button_callback2"] = 0
+        # self.state_dict["button_callback3"] = 0
+        # self.state_dict["button_callback4"] = 0
+
         self.db.set(self.state_dict) # fill
  
         self.last_update = time.time()
@@ -124,14 +128,51 @@ class TaskPlanner:
     def main(self):
         while not rospy.is_shutdown():
             try:
+                q=[]
                 button_callback_value = self.db.child("button_callback").get().val()
-                rospy.loginfo(button_callback_value)
-                
-                if button_callback_value == True:
-                    navSuccess = self.executeTask()
+                button_callback_value2 = self.db.child("button_callback2").get().val()
+                button_callback_value3 = self.db.child("button_callback3").get().val()
+                button_callback_value4 = self.db.child("button_callback4").get().val()
+
+                if(button_callback_value==1):
+                    if 1 not in q:
+                        q.append(1)
+                        self.db.child("button_callback").set(0)
+                        # self.db.child("button_callback").push(0)
+                        # self.state_dict["button_callback"] = 0        
+                        # self.db.set(self.state_dict) # fill
+                elif(button_callback_value2==1):
+                    if 2 not in q:
+                        q.append(2)
+                        # self.db.child("button_callback2").push(0)
+                        self.state_dict["button_callback"] = 0        
+                        # self.db.set(self.state_dict) # fill
+                elif(button_callback_value3==1):
+                    if 3 not in q:
+                        self.state_dict["button_callback"] = 0        
+                        # self.db.set(self.state_dict) # fill
+                        q.append(3)
+                        # self.db.child("button_callback3").push(0)
+                elif(button_callback_value4==1):
+                    if 4 not in q:
+                        q.append(4)
+                        # self.db.child("button_callback4").push(0)
+                        self.state_dict["button_callback"] = 0        
+                        # self.db.set(self.state_dict) # fill
+                       
+                # if q[0] == True:
+                #     navSuccess = self.executeTask(self, )
+                #     if navSuccess == 1:
+                #         rospy.loginfo("Updating operation mode to video call")
+                #         self.bot_state.update_operation_mode(OperationModes.TELEOPERATION)
+
+                if(q):
+                    navSuccess = self.executeTask(self,q[0])
                     if navSuccess == 1:
-                        rospy.loginfo("Updating operation mode to video call")
-                        self.bot_state.update_operation_mode(OperationModes.TELEOPERATION)
+                        # q.pop()
+                        rospy.loginfo(q)
+                        rospy.sleep(5)
+
             except KeyboardInterrupt:
                 rospy.loginfo("Keyboard interrupt received. Exiting the program.")
 
@@ -140,38 +181,55 @@ class TaskPlanner:
                 # self.bot_state.update_operation_mode(OperationModes.TELEOPERATION)
                 # success = self.navigate_to_location(LocationOfInterest.HOME)
 
-    def executeTask(self):
+    def executeTask(self,i,j):
 
         # self.stow_robot_service()
+        j=j
         self.startNavService()
-        navSuccess = self.navigate_to_location(self.navigationGoal)
+        navSuccess = self.navigate_to_location(self.navigationGoal,j)
         return navSuccess
         
-    def navigate_to_location(self, location : Enum):
+    # def jake(self):
+    #     self.startNavService()
+    #     navSuccess = self.navigate_to_location(self.navigationGoal)
+    
+    def navigate_to_location(self, location : Enum, k):
         #locationName = location.HOME
         #rospy.loginfo(f"[{rospy.get_name()}]:" +"Executing task. Going to {}".format(locationName))
         # send goal
         #print("Sending goal to move_base", self.goal_locations[locationName]['x'], self.goal_locations[locationName]['y'], self.goal_locations[locationName]['theta'])
-        goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = "map"
-        goal.target_pose.pose.position.x = -3.32
-        goal.target_pose.pose.position.y = -9.54
-        quaternion = get_quaternion(240)
-        goal.target_pose.pose.orientation = quaternion
-        self.navigation_client.send_goal(goal, feedback_cb = self.bot_state.navigation_feedback)
-        wait = self.navigation_client.wait_for_result()
+        # goal = MoveBaseGoal()
+        if(k==1):
+            rospy.loginfo("Jake requested for water.")
+        elif(k==2):
+            rospy.loginfo("Jake wants to talk to Donna.")
+        elif(k==3):
+            rospy.loginfo("Steve wants water.")
+        elif(k==4):
+            rospy.loginfo("Steve wants to talk to Harry.")
+        else:
+            rospy.loginfo(k)
+            rospy.loginfo("No tasks yet.")
 
-        if self.navigation_client.get_state() != actionlib.GoalStatus.SUCCEEDED:
-            rospy.loginfo(f"[{rospy.get_name()}]:" +"Failed to reach Table")
-            # cancel navigation
-            self.navigation_client.cancel_goal()
-            return False
+        # goal.target_pose.header.frame_id = "map"
+        # goal.target_pose.pose.position.x = -3.32
+        # goal.target_pose.pose.position.y = -9.54
+        # quaternion = get_quaternion(240)
+        # goal.target_pose.pose.orientation = quaternion
+        # self.navigation_client.send_goal(goal, feedback_cb = self.bot_state.navigation_feedback)
+        # wait = self.navigation_client.wait_for_result()
+
+        # if self.navigation_client.get_state() != actionlib.GoalStatus.SUCCEEDED:
+        #     rospy.loginfo(f"[{rospy.get_name()}]:" +"Failed to reach Table")
+        #     # cancel navigation
+        #     self.navigation_client.cancel_goal()
+        #     return False
         
-        rospy.loginfo(f"[{rospy.get_name()}]:" +"Reached Table")
-        self.bot_state.update_emotion(Emotions.HAPPY)
-        self.bot_state.update_state()
-        self.bot_state.currentGlobalState = GlobalStates.REACHED_GOAL
-        rospy.loginfo(f"[{rospy.get_name()}]:" +"Reached Table")
+        # rospy.loginfo(f"[{rospy.get_name()}]:" +"Reached Table")
+        # self.bot_state.update_emotion(Emotions.HAPPY)
+        # self.bot_state.update_state()
+        # self.bot_state.currentGlobalState = GlobalStates.REACHED_GOAL
+        # rospy.loginfo(f"[{rospy.get_name()}]:" +"Reached Table")
         return True
 
 
